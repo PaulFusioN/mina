@@ -9,4 +9,6 @@ locals {
     secret = "seed-discovery-keys",
     port = 10401
   }
+
+  archive_node_names         = var.archive_node_count == 0 ? [ "" ] : [for i in range(var.archive_node_count) : "archive-${i + 1}:3086"]
 }

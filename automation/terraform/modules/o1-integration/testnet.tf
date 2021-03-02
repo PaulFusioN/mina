@@ -38,6 +38,27 @@ module "kubernetes_testnet" {
     }
   ]
 
+  archive_configs = length(var.archive_configs) != 0 ? var.archive_configs : concat(
+    # by default, deploy a single local daemon and associated PostgresDB enabled archive server
+    [
+      {
+        name              = "archive-1"
+        enableLocalDaemon = true
+        enablePostgresDB  = true
+        postgresHost      = "archive-1-postgresql"
+      }
+    ],
+    # in addition to stand-alone archive servers up to the input archive node count
+    [
+      for i in range(2, var.archive_node_count + 1) : {
+        name              = "archive-${i}"
+        enableLocalDaemon = false
+        enablePostgresDB  = false
+        postgresHost      = "archive-1-postgresql"
+      }
+    ]
+  )
+
   log_precomputed_blocks = var.log_precomputed_blocks
 
   archive_node_count   = var.archive_node_count

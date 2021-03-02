@@ -58,6 +58,11 @@ variable "log_precomputed_blocks" {
   type = bool
 }
 
+variable "archive_configs" {
+  type    = list(any)
+  default = []
+}
+
 variable "archive_node_count" {
   type = number
 }

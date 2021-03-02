@@ -414,7 +414,7 @@ module Node = struct
   let dump_precomputed_blocks ~logger (t : t) =
     let open Malleable_error.Let_syntax in
     [%log info] "Dumping precomputed blocks from logs for node %s" t.pod_id ;
-    let%map logs =
+    let%bind logs =
       Deferred.bind ~f:Malleable_error.return (get_logs_in_container "coda" t)
     in
     let log_lines = String.split logs ~on:'\n' in
@@ -457,12 +457,24 @@ module Node = struct
                 (Yojson.Safe.to_string other)
                 () )
     in
-    List.iter state_hash_and_blocks ~f:(fun (state_hash_json, block_json) ->
-        let state_hash = Yojson.Safe.to_string state_hash_json in
-        let block = Yojson.Safe.to_string block_json in
-        [%log info] "Dumping precomputed block with state hash %s" state_hash ;
-        Out_channel.with_file (state_hash ^ ".json") ~f:(fun out_ch ->
-            Out_channel.output_string out_ch block ) )
+    let%bind.Deferred.Let_syntax () =
+      Deferred.List.iter state_hash_and_blocks
+        ~f:(fun (state_hash_json, block_json) ->
+          let state_hash = Yojson.Safe.to_string state_hash_json in
+          let block = Yojson.Safe.to_string block_json in
+          let filename = state_hash ^ ".json" in
+          match%map.Deferred.Let_syntax Sys.file_exists filename with
+          | `Yes ->
+              [%log info]
+                "File already exists for precomputed block with state hash %s"
+                state_hash
+          | _ ->
+              [%log info] "Dumping precomputed block with state hash %s"
+                state_hash ;
+              Out_channel.with_file (state_hash ^ ".json") ~f:(fun out_ch ->
+                  Out_channel.output_string out_ch block ) )
+    in
+    Malleable_error.return ()
 end
 
 type t =
