@@ -35,7 +35,7 @@ Pipeline.build
           Command.Config::
             { commands =
               [ Cmd.runInDocker
-                  Cmd.Docker::{image = "codaprotocol/coda:rosetta-\\\${BUILDKITE_COMMIT}"}
+                  Cmd.Docker::{image = "codaprotocol/coda:rosetta-\\\${CODA_SERVICE}-\\\${CODA_VERSION}"}
                     -- [ "USER=${user}"
                     -- , "POSTGRES_PASSWORD=${password}"
                     -- , "POSTGRES_USER=${user}"
